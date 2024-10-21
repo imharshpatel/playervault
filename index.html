@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Staatliches&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Ranking of Free Fire players based on UID and performance.">
+    <meta name="keywords" content="Free Fire, player ranking, gaming, UID">
+    <title>PlayerVault</title>
+    <script src="https://kit.fontawesome.com/bd6d6d28c5.js" crossorigin="anonymous"></script>
+    <style>
+        nav {
+            background: #151515; /* Match the body background */
+            height: 80px;
+            width: 100%;
+            position: fixed;
+            top:0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+
+        label.logo {
+            color: #e6e600; /* Bright accent color for logo */
+            font-size: 25px;
+            line-height: 80px;
+            padding: 0 100px;
+            font-weight: bold;
+        }
+
+        nav ul {
+            float: right;
+            margin-right: 20px;
+        }
+
+        nav ul li {
+            display: inline-block;
+            line-height: 80px;
+            margin: 0 5px;
+        }
+
+        nav ul li a {
+            color: #e6e600; /* Bright accent color for links */
+            font-size: 17px;
+            padding: 7px 13px;
+            border-radius: 3px;
+            text-transform: uppercase;
+        }
+
+        a.active,
+        a:hover {
+            transition: .5s;
+            color: white;
+        }
+
+        .checkbtn {
+            font-size: 22px;
+            color: white;
+            float: right;
+            line-height: 80px;
+            margin-right: 30px;
+            cursor: pointer;
+            display: none;
+        }
+
+        #check {
+            display: none;
+        }
+
+        @media (max-width: 1050px) {
+            label.logo {
+                padding-left: 30px;
+            }
+
+            nav ul li a {
+                font-size: 16px;
+            }
+        }
+
+        @media (max-width: 890px) {
+            .checkbtn {
+                display: block;
+            }
+
+            label.logo {
+                font-size: 22px;
+            }
+
+            ul {
+                position: fixed;
+                width: 70%;
+                height: 100vh;
+                background: #0f0f0f;
+                top: 80px;
+                left: -100%;
+                text-align: center;
+                transition: all .5s;
+                z-index: 1000;
+            }
+
+            nav ul li {
+                display: block;
+                margin: 50px 0;
+                line-height: 5px;
+            }
+
+            nav ul li a {
+                font-size: 20px;
+            }
+        }
+
+        a.active {
+            background: #008ae6;
+        }
+
+        #check:checked ~ ul {
+            left: 0;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        body {
+            font-family: "Staatliches", sans-serif;
+            background-color: #0d0d0d;
+            color: #fff;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden; /* Prevent horizontal scroll */
+        }
+
+        * {
+            padding: 0;
+            margin: 0;
+            text-decoration: none;
+            list-style: none;
+            box-sizing: border-box;
+        }
+
+        .search-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px auto;
+            padding: 0 10px;
+            
+        }
+
+        .search-container input {
+            padding: 10px;
+            font-size: 16px;
+            border: 2px solid #444;
+            border-radius: 5px;
+            width: 100%;
+            max-width: 300px;
+            background-color: #222;
+            color: #fff;
+            margin-top: 100px;
+            font-weight: bold;
+        }
+
+        .search-container button {
+            padding: 10px;
+            font-size: 16px;
+            border: none;
+            background-color: #e6e600;
+            color: #000;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 10px;
+            width: 100%;
+            max-width: 120px;
+            
+        }
+
+        .search-container button:hover {
+            background-color: #fff200;
+        }
+
+        .player-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); /* Responsive grid */
+            gap: 20px; /* Space between cards */
+            margin: 2rem auto;
+            padding: 0 1rem; /* Padding around grid */
+            
+        }
+
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            background-color: #151515;
+            border-radius: 10px;
+            position: relative;
+            transition: transform 0.3s, box-shadow 0.3s; /* Added transition for box-shadow */
+            margin: 5px;
+        }
+
+        .main-container:hover {
+            transform: scale(1.05); /* Slightly enlarge on hover */
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5), 0 0 30px rgba(230, 230, 0, 1); /* More intense glow on hover */
+        }
+
+        .rank {
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            background-color: #e6e600;
+            padding: 10px 15px;
+            border-radius: 50%;
+            color: #000;
+            font-weight: bold;
+            font-size: 24px;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .pf-pic {
+            height: 100px;
+            width: 100px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 4px solid #e6e600;
+            box-shadow: 0 0 10px rgba(230, 230, 0, 0.8);
+            margin-bottom: 15px;
+        }
+
+        .player-info {
+            text-align: center;
+        }
+
+        .player-name, .player-id, .game-name {
+            padding: 10px;
+            margin: 5px 0;
+            background-color: #222;
+            border: 1px solid #444;
+            border-radius: 8px;
+            color: #e6e600;
+            font-weight: bold;
+        }
+
+        .social-container {
+            margin-top: 15px;
+        }
+
+        .social-link {
+            font-size: 15px;
+            color: #ffffff;
+            text-decoration: none;
+            margin: 0 10px;
+            transition: color 0.3s ease;
+        }
+
+        .social-link a {
+            color: #008ae6;
+            margin-right: 2px;
+            
+        }
+
+        .fa-square-instagram,
+        .fa-youtube,
+        .fa-circle-info {
+            font-size: 24px;
+            color: #ffffff;
+            margin-right: 2px;
+        }
+
+        #message {
+            color: red;
+            text-align: center;
+            display: none;
+        }
+
+
+       footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: #151515;
+            text-align: center;
+            padding: 10px 0;
+            color: #e6e600;
+        }
+
+        .social-links {
+            margin-top: 10px;
+        }
+
+        .social-links a {
+            margin: 0 10px;
+            color: #e6e600;
+            font-size: 20px;
+            transition: color 0.3s;
+        }
+
+        .social-links a:hover {
+            color: white;
+        }
+        .yticon i{
+            color: #e6e600;
+        }
+
+        .yticon i:hover{
+            color: white;
+           
+        }
+        
+    </style>
+</head>
+
+<body>
+    <header>
+    <nav>
+        <!-- Checkbox for toggling menu -->
+        <input type="checkbox" id="check">
+    
+        <!-- Menu icon -->
+        <label for="check" class="checkbtn">
+          <i class="fas fa-bars"></i>
+        </label>
+    
+        <!-- Site logo -->
+        <label class="logo">PlayerVault</label>
+    
+        <!-- Navigation links -->
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="article.html">Articles</a></li>
+          <li><a href="about.html">About Us</a></li>
+          <li><a href="#">Privacy Policy</a></li>
+          <li><a href="contact.html">Contact Us</a></li>
+          <li><a class="active" href="https://forms.gle/CF1ujezdSZ4Cp4xGA">Create Player card</a></li>
+          
+        </ul>
+        
+    </nav>
+    </header>
+
+    <!-- Search Section -->
+    <div class="search-container">
+        <input type="text" id="search-input" placeholder="Enter UID or Player Name" aria-label="Search Player">
+        <button onclick="searchPlayer()">Search</button>
+    </div>
+
+    <div id="message"></div> <!-- Message display -->
+
+    <!-- Player Cards -->
+    <div class="player-cards">
+        <!-- Player 1 -->
+        <div class="main-container player-card" data-name="harshpatel" data-uid="1699444468">
+            <div class="rank">1</div>
+            <img class="pf-pic" src="https://i.guim.co.uk/img/media/d74fb48312da07d3419482b1a22f5eb1cb04e4f1/0_103_1532_919/master/1532.jpg?width=465&dpr=1&s=none" alt="Profile Picture of harshpatel">
+            <div class="player-info">
+                <p class="player-name">Player Name: harshpatel</p>
+                <p class="player-id">UID: 1699444468</p>
+                <p class="game-name">Game: Free Fire</p>
+                <div class="social-container">
+                    <p class="social-link">
+                        <i class="fa-brands fa-square-instagram"></i> <a href="#">Instagram</a>
+                        <i class="fa-brands fa-youtube"></i> <a href="#">YouTube</a>
+                        <i class="fa-solid fa-circle-info"></i><a href="#">Details</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-container player-card" data-name="harshpatel" data-uid="1699444468">
+            <div class="rank">2</div>
+            <img class="pf-pic" src="https://i.guim.co.uk/img/media/d74fb48312da07d3419482b1a22f5eb1cb04e4f1/0_103_1532_919/master/1532.jpg?width=465&dpr=1&s=none" alt="Profile Picture of harshpatel">
+            <div class="player-info">
+                <p class="player-name">Player Name: harshpatel</p>
+                <p class="player-id">UID: 1699444468</p>
+                <p class="game-name">Game: Free Fire</p>
+                <div class="social-container">
+                    <p class="social-link">
+                        <i class="fa-brands fa-square-instagram"></i> <a href="#">Instagram</a>
+                        <i class="fa-brands fa-youtube"></i> <a href="#">YouTube</a>
+                        <i class="fa-solid fa-circle-info"></i><a href="#">Details</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add more player cards as needed -->
+    </div>
+
+
+    <footer>
+        <p>Follow us</p>
+        <div class="social-links">
+            <a href="https://www.facebook.com/playervault" target="_blank"><i class="fab fa-facebook"></i></a>
+            <a href="https://t.me/playervault" target="_blank"><i class="fa-brands fa-telegram"></i></a>
+            <a href="https://www.instagram.com/playervault.in/profilecard/?igsh=MWlpNjJsemxoZGJzNA==" target="_blank"><i class="fab fa-instagram"></i></a>
+            <a href="https://youtube.com/@playervaultgaming?si=VR0cra0HiN8m7q9l" target="_blank" class="yticon"><i class="fab fa-youtube"></i></a>
+        </div>
+    </footer>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('show');
+        }
+
+        // Close sidebar on outside click
+        document.addEventListener('click', function(event) {
+            const sidebar = document.getElementById('sidebar');
+            const toggleButton = document.querySelector('.sidebar-toggle');
+
+            // Check if the click was outside the sidebar and the toggle button
+            if (!sidebar.contains(event.target) && !toggleButton.contains(event.target)) {
+                sidebar.classList.remove('show'); // Close the sidebar
+            }
+        });
+
+        function searchPlayer() {
+            const input = document.getElementById('search-input').value.toLowerCase();
+            const playerCards = document.querySelectorAll('.player-card');
+            const messageDiv = document.getElementById('message');
+
+            // Hide all player cards initially
+            playerCards.forEach(card => {
+                card.style.display = 'none';
+            });
+
+            // Flag to check if any player is found
+            let found = false;
+
+            // Loop through each player card to find a match
+            playerCards.forEach(card => {
+                const playerName = card.getAttribute('data-name').toLowerCase();
+                const playerUID = card.getAttribute('data-uid');
+
+                // Check if input matches player name or UID
+                if (input === playerName || input === playerUID) {
+                    card.style.display = 'flex'; // Show matching player card
+                    found = true; // Set found to true
+                }
+            });
+
+            // Show message if no player is found
+            if (!found) {
+                messageDiv.textContent = "No player found with that UID or name.";
+                messageDiv.style.display = 'block'; // Show the message
+            } else {
+                messageDiv.style.display = 'none'; // Hide the message if found
+            }
+        }
+    </script>
+
+</body>
+</html>
